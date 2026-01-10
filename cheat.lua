@@ -458,7 +458,7 @@ function isNameTagVisible(id)
     local NTdist = representIntAsFloat(readMemory(pStSet + 39, 4, false))
     local bool, handle = sampGetCharHandleBySampPlayerId(id)
     if bool and isCharOnScreen(handle) then
-        local x, y, z = getBodyPartCoordinates(8, handle)
+        local x, y, z = GetBodyPartCoordinates(8, handle)
         local xi, yi, zi = getActiveCameraCoordinates()
         local result = isLineOfSightClear(x, y, z, xi, yi, zi, true, false, false, true, false)
         local dist = math.sqrt( (xi - x) ^ 2 + (yi - y) ^ 2 + (zi - z) ^ 2 )
@@ -620,20 +620,20 @@ end
                         if doesCharExist(cped) and isCharOnScreen(cped) then
                             local t = {3, 4, 5, 51, 52, 41, 42, 31, 32, 33, 21, 22, 23, 2}
                             for v = 1, #t do
-                                pos1X, pos1Y, pos1Z = getBodyPartCoordinates(t[v], cped)
-                                pos2X, pos2Y, pos2Z = getBodyPartCoordinates(t[v] + 1, cped)
+                                pos1X, pos1Y, pos1Z = GetBodyPartCoordinates(t[v], cped)
+                                pos2X, pos2Y, pos2Z = GetBodyPartCoordinates(t[v] + 1, cped)
                                 pos1, pos2 = convert3DCoordsToScreen(pos1X, pos1Y, pos1Z)
                                 pos3, pos4 = convert3DCoordsToScreen(pos2X, pos2Y, pos2Z)
                                 renderDrawLine(pos1, pos2, pos3, pos4, 1, color)
                             end
                             for v = 4, 5 do
-                                pos2X, pos2Y, pos2Z = getBodyPartCoordinates(v * 10 + 1, cped)
+                                pos2X, pos2Y, pos2Z = GetBodyPartCoordinates(v * 10 + 1, cped)
                                 pos3, pos4 = convert3DCoordsToScreen(pos2X, pos2Y, pos2Z)
                                 renderDrawLine(pos1, pos2, pos3, pos4, 1, color)
                             end
                             local t = {53, 43, 24, 34, 6}
                             for v = 1, #t do
-                                posX, posY, posZ = getBodyPartCoordinates(t[v], cped)
+                                posX, posY, posZ = GetBodyPartCoordinates(t[v], cped)
                                 pos1, pos2 = convert3DCoordsToScreen(posX, posY, posZ)
                                 end
                             end
@@ -645,14 +645,16 @@ end
     end)
 end
 
-local getBonePosition = ffi.cast("int (__thiscall*)(void*, float*, int, bool)", 0x5E4280)
+local getbonePosition = ffi.cast("int (__thiscall*)(void*, float*, int, bool)", 0x5E4280)
 
-function getBodyPartCoordinates(id, handle)
-    local pedptr = getCharPointer(handle)
-    local vec = ffi.new("float[3]")
-    getBonePosition(ffi.cast("void*", pedptr), vec, id, true)
-    return vec[0], vec[1], vec[2]
-  end
+function GetBodyPartCoordinates(id, handle)
+    if doesCharExist(handle) then
+        local pedptr = getCharPointer(handle)
+        local vec = ffi.new("float[3]")
+        getbonePosition(ffi.cast("void*", pedptr), vec, id, true)
+        return vec[0], vec[1], vec[2]
+    end
+end
   
   function join_argb(a, r, g, b)
     local argb = b  -- b
@@ -660,7 +662,7 @@ function getBodyPartCoordinates(id, handle)
     argb = bit.bor(argb, bit.lshift(r, 16)) -- r
     argb = bit.bor(argb, bit.lshift(a, 24)) -- a
     return argb
-  end
+end
   
   function explode_argb(argb)
     local a = bit.band(bit.rshift(argb, 24), 0xFF)
@@ -668,7 +670,7 @@ function getBodyPartCoordinates(id, handle)
     local g = bit.band(bit.rshift(argb, 8), 0xFF)
     local b = bit.band(argb, 0xFF)
     return a, r, g, b
-  end
+end
 
 --------------------------------- anti mask ---------------------------------
 
@@ -792,5 +794,3 @@ end
 ]]
 
 ---------------------------------  ---------------------------------
-
-
