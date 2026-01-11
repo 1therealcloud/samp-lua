@@ -92,7 +92,7 @@ function autoupdate(json_url, prefix)
               lua_thread.create(function(prefix)
                 local dlstatus = require('moonloader').download_status
                 local color = -1
-                print((prefix..'Update detected. Attempting to update from '..thisScript().version..' to '..updateversion), color)
+                print((prefix..'Update detected. Trying to update from '..thisScript().version..' to '..updateversion), color)
                 wait(250)
                 downloadUrlToFile(updatelink, thisScript().path,
                   function(id3, status1, p13, p23)
