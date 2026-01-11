@@ -1,5 +1,5 @@
 script_name('cloud-multi-cheat')
-script_version('01.11.2026')
+script_version('01.11.2026rc1')
 script_author('cloud')
 
 -- require
