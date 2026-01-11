@@ -794,3 +794,10 @@ end
 ]]
 
 ---------------------------------  ---------------------------------
+
+--[[
+function sampev.onSendGiveDamage(playerId, damage, weapon, bodypart)
+    sampSendGiveDamage(playerId, damage, weapon, bodypart)
+    printStringNow(string.format("Sended %.1f damage to ID %d", damage, playerId), 1000)
+end
+]]
