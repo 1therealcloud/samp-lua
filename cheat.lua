@@ -144,6 +144,7 @@ function main()
     -- misc
     noExplosion()
     airbrake()
+    doubledamage()
 
     -- main functions
     enableAllFunctions()
@@ -151,6 +152,17 @@ function main()
     dialogRespond()
 
     wait(-1)
+end
+
+function doubledamage()
+    lua_thread.create(function ()
+        while true do wait (0)
+            if isKeyJustPressed(0xDC) or isKeyJustPressed(0xE2) then
+                doubledamage = not doubledamage
+                printStringNow(doubledamage and 'DoubleDamage Enabled' or 'DoubleDamage Disabled', 2000)
+            end
+        end
+    end)
 end
 
 function noExplosion()
@@ -863,9 +875,15 @@ end
 
 ---------------------------------  ---------------------------------
 
---[[
+local doubledamage = false
+
 function sampev.onSendGiveDamage(playerId, damage, weapon, bodypart)
-    sampSendGiveDamage(playerId, damage, weapon, bodypart)
-    printStringNow(string.format("Sended %.1f damage to ID %d", damage, playerId), 1000)
+    if doubledamage then
+        if math.random(1, 100) <= 15 then
+            sampSendGiveDamage(playerId, damage, weapon, bodypart)
+            printStringNow(string.format("(X2) Sended %.1f damage to ID %d", damage, playerId), 1000)
+        else
+            printStringNow(string.format("Sended %.1f damage to ID %d", damage, playerId), 1000)
+        end
+    end
 end
-]]
