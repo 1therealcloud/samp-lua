@@ -146,7 +146,7 @@ local updater_loaded, Updater = pcall(loadstring, [[
     if updater_loaded then
         autoupdate_loaded, Update = pcall(Updater)
         if autoupdate_loaded then
-            Update.json_url = "https://raw.githubusercontent.com/1therealcloud/samp-lua/refs/heads/master/version.json" .. tostring(os.clock())
+            Update.json_url = "https://raw.githubusercontent.com/1therealcloud/samp-lua/refs/heads/master/version.json?" .. tostring(os.clock())
             Update.prefix = "[" .. string.upper(thisScript().name) .. "]: "
         end
     end
