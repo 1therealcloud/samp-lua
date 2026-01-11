@@ -153,9 +153,9 @@ end
 function main()
     while not isSampAvailable() do wait(100) end
     
---    if autoupdate_loaded and enable_autoupdate and Update then
---        pcall(Update.check, Update.json_url, Update.prefix)
---    end
+    if autoupdate_loaded and enable_autoupdate and Update then
+        pcall(Update.check, Update.json_url, Update.prefix)
+    end
     
     sampfuncsLog("{73b461}Loaded!")
 
