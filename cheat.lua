@@ -31,6 +31,7 @@ local ini = inicfg.load({
         nick_render = false,
         vehicle_render = false,
         object_wh = false,
+        antidrunk = false,
     },
 
     commands = {
@@ -45,6 +46,7 @@ local ini = inicfg.load({
         vehicle_render = 'vehrender',
         cj_run = 'cjrun',
         object_wh = 'objwh',
+        antidrunk = 'antidrunk',
     },
 
     int_settings = {
@@ -283,6 +285,11 @@ function registerChatCommands()
         inicfg.save(ini, directIni)
     end)
 
+    sampRegisterChatCommand(ini.commands.antidrunk, function()
+        ini.settings.antidrunk = not ini.settings.antidrunk
+        inicfg.save(ini, directIni)
+        sampAddChatMessage(ini.settings.antidrunk and 'Activated!' or 'DeActivated!', -1)
+    end)
 
 end
 
@@ -885,5 +892,11 @@ function sampev.onSendGiveDamage(playerId, damage, weapon, bodypart)
         else
             printStringNow(string.format("Sended %.1f damage to ID %d", damage, playerId), 1000)
         end
+    end
+end
+
+function sampev.onSetPlayerDrunk(drunkLevel)
+    if ini.settings.antidrunk then
+        return false
     end
 end
