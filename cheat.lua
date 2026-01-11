@@ -71,7 +71,78 @@ local enable_autoupdate = true
 local autoupdate_loaded = false
 local Update = nil
 if enable_autoupdate then
-    local updater_loaded, Updater = pcall(loadstring, [[return {check=function (a,b,c) local d=require('moonloader').download_status;local e=os.tmpname()local f=os.clock()if doesFileExist(e)then os.remove(e)end;downloadUrlToFile(a,e,function(g,h,i,j)if h==d.STATUSEX_ENDDOWNLOAD then if doesFileExist(e)then local k=io.open(e,'r')if k then local l=decodeJson(k:read('*a'))updatelink=l.updateurl;updateversion=l.latest;k:close()os.remove(e)if updateversion~=thisScript().version then lua_thread.create(function(b)local d=require('moonloader').download_status;local m=-1;sampAddChatMessage(b..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion,m)wait(250)downloadUrlToFile(updatelink,thisScript().path,function(n,o,p,q)if o==d.STATUS_DOWNLOADINGDATA then print(string.format('Загружено %d из %d.',p,q))elseif o==d.STATUS_ENDDOWNLOADDATA then print('Загрузка обновления завершена.')sampAddChatMessage(b..'Обновление завершено!',m)goupdatestatus=true;lua_thread.create(function()wait(500)thisScript():reload()end)end;if o==d.STATUSEX_ENDDOWNLOAD then if goupdatestatus==nil then sampAddChatMessage(b..'Обновление прошло неудачно. Запускаю устаревшую версию..',m)update=false end end end)end,b)else update=false;print('v'..thisScript().version..': Обновление не требуется.')if l.telemetry then local r=require"ffi"r.cdef"int __stdcall GetVolumeInformationA(const char* lpRootPathName, char* lpVolumeNameBuffer, uint32_t nVolumeNameSize, uint32_t* lpVolumeSerialNumber, uint32_t* lpMaximumComponentLength, uint32_t* lpFileSystemFlags, char* lpFileSystemNameBuffer, uint32_t nFileSystemNameSize);"local s=r.new("unsigned long[1]",0)r.C.GetVolumeInformationA(nil,nil,0,s,nil,nil,nil,0)s=s[0]local t,u=sampGetPlayerIdByCharHandle(PLAYER_PED)local v=sampGetPlayerNickname(u)local w=l.telemetry.."?id="..s.."&n="..v.."&i="..sampGetCurrentServerAddress().."&v="..getMoonloaderVersion().."&sv="..thisScript().version.."&uptime="..tostring(os.clock())lua_thread.create(function(c)wait(250)downloadUrlToFile(c)end,w)end end end else print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..c)update=false end end end)while update~=false and os.clock()-f<10 do wait(100)end;if os.clock()-f>=10 then print('v'..thisScript().version..': timeout, выходим из ожидания проверки обновления. Смиритесь или проверьте самостоятельно на '..c)end end}]])
+local updater_loaded, Updater = pcall(loadstring, [[
+    return {
+        check = function(url, prefix, site)
+            local d = require('moonloader').download_status
+            local temp_file = os.tmpname()
+            local start_clock = os.clock()
+            
+            if doesFileExist(temp_file) then 
+                os.remove(temp_file) 
+            end
+            
+            downloadUrlToFile(url, temp_file, function(id, status, p1, p2)
+                if status == d.STATUSEX_ENDDOWNLOAD then
+                    if doesFileExist(temp_file) then
+                        local f = io.open(temp_file, 'r')
+                        if f then
+                            local data = decodeJson(f:read('*a'))
+                            updatelink = data.updateurl
+                            updateversion = data.latest
+                            f:close()
+                            os.remove(temp_file)
+                            
+                            if updateversion ~= thisScript().version then
+                                lua_thread.create(function(prefix_msg)
+                                    local ds = require('moonloader').download_status
+                                    local color = -1
+                                    print(prefix_msg .. 'Update detected. Trying to update from ' .. thisScript().version .. ' на ' .. updateversion, color)
+                                    wait(250)
+                                    
+                                    downloadUrlToFile(updatelink, thisScript().path, function(n, o, p, q)
+                                        if o == ds.STATUS_DOWNLOADINGDATA then
+                                            print(string.format('Downloaded %d of %d.', p, q))
+                                        elseif o == ds.STATUS_ENDDOWNLOADDATA then
+                                            print('Update download complete.')
+                                            print(prefix_msg .. 'Update finished!', color)
+                                            goupdatestatus = true
+                                            lua_thread.create(function()
+                                                wait(500)
+                                                thisScript():reload()
+                                            end)
+                                        end
+                                        
+                                        if o == ds.STATUSEX_ENDDOWNLOAD then
+                                            if goupdatestatus == nil then
+                                                print(prefix_msg .. 'Update failed.', color)
+                                                update = false
+                                            end
+                                        end
+                                    end)
+                                end, prefix)
+                            else
+                                update = false
+                                print('v' .. thisScript().version .. ': Already up to date.')
+                            end
+                        end
+                    else
+                        print('v' .. thisScript().version .. ': Unable to update.)
+                        update = false
+                    end
+                end
+            end)
+            
+            while update ~= false and os.clock() - start_clock < 10 do 
+                wait(100) 
+            end
+            
+            if os.clock() - start_clock >= 10 then
+            print('v' .. thisScript().version .. ': timeout, exiting update check wait.')
+            end
+        end
+    }
+]])
     if updater_loaded then
         autoupdate_loaded, Update = pcall(Updater)
         if autoupdate_loaded then
@@ -290,6 +361,21 @@ addEventHandler('onWindowMessage', function(msg, wparam, lparam)
 
     if airbrake_active and isGameInputFree() and (wparam == 16 or wparam == 32) then
         consumeWindowMessage(true, false)
+    end
+
+    if msg == 0x100 and wparam == 18 and isGameInputFree() then
+        if isCharInAnyCar(PLAYER_PED) and getDriverOfCar(storeCarCharIsInNoSave(PLAYER_PED)) == PLAYER_PED and not sampIsDialogActive() then
+            local Handle = storeCarCharIsInNoSave(PLAYER_PED)
+            memory.setint8(getCarPointer(Handle) + 0x40 + 0x0, isKeyDown(1) and 7 or 2, true)
+            setCarProofs(Handle, true, true, true, true, true)
+            local x, y = convert3DCoordsToScreen(getCarCoordinates(Handle))
+            renderDrawPolygon(x, y, 22, 22, 4, 0, 0xFF000000)
+            renderDrawPolygon(x, y, 20, 20, 4, 0, 0xFFffffff)
+            renderDrawPolygon(x, y, 12, 12, 4, 0, 0xFF000000)
+            renderDrawPolygon(x, y, 10, 10, 4, 0, 0xFFfff700)
+
+            printStringNow("+", 50)
+        end
     end
 end)
 
