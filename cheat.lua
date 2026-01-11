@@ -136,7 +136,7 @@ function main()
     
     autoupdate("https://raw.githubusercontent.com/1therealcloud/samp-lua/refs/heads/master/version.json", '['..string.upper(thisScript().name)..']: ')
     
-    sampfuncsLog("{73b461}Loaded!")
+    print("{73b461}Loaded!")
 
     writeMemory(0x58E1DD, 2, 0x9090, true) -- fast crosshair
     writeMemory(0x058E280, 1, 0xEB, true) -- fix crosshair
