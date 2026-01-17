@@ -33,7 +33,7 @@ local ini = inicfg.load({
         nick_render = false,
         vehicle_render = false,
         object_wh = false,
-        antidrunk = false,
+        anti_drunk = false,
     },
 
     commands = {
@@ -48,7 +48,7 @@ local ini = inicfg.load({
         vehicle_render = 'vehrender',
         cj_run = 'cjrun',
         object_wh = 'objwh',
-        antidrunk = 'antidrunk',
+        anti_drunk = 'antidrunk',
     },
 
     int_settings = {
@@ -287,10 +287,10 @@ function registerChatCommands()
         inicfg.save(ini, directIni)
     end)
 
-    sampRegisterChatCommand(ini.commands.antidrunk, function()
-        ini.settings.antidrunk = not ini.settings.antidrunk
+    sampRegisterChatCommand(ini.commands.anti_drunk, function()
+        ini.settings.anti_drunk = not ini.settings.anti_drunk
         inicfg.save(ini, directIni)
-        sampAddChatMessage(ini.settings.antidrunk and 'Activated!' or 'DeActivated!', -1)
+        sampAddChatMessage(ini.settings.anti_drunk and 'Activated!' or 'DeActivated!', -1)
     end)
 
 end
@@ -363,7 +363,31 @@ end)
 --------------------------------- dialog --------------------------------
 
 function showHelpDialog()
-    sampShowDialog(1231, 'Script settings', 'Function\tCommand\tStatus\nBone WH\t/'..ini.commands.bone_wh..'\t'..string.format(ini.settings.bone_wh and '{73b461}true' or '{dc4747}false')..'\nStatic crosshair\t/'..ini.commands.static_crosshair..'\t'..string.format(ini.settings.static_crosshair and '{73b461}true' or '{dc4747}false')..'\nNo spread\t/'..ini.commands.no_spread..'\t'..string.format(ini.settings.no_spread and '{73b461}true' or '{dc4747}false')..'\nAuto reload\t/'..ini.commands.auto_reload..'\t'..string.format(ini.settings.auto_reload and '{73b461}true' or '{dc4747}false')..'\nExtra WS\t/'..ini.commands.extra_ws..'\t'..string.format(ini.settings.extra_ws and '{73b461}true' or '{dc4747}false')..'\nAnti mask\t/'..ini.commands.anti_mask..'\t'..string.format(ini.settings.anti_mask and '{73b461}true' or '{dc4747}false')..'\nStream info\t/'..ini.commands.stream_info..'\t'..string.format(ini.settings.stream_info and '{73b461}true' or '{dc4747}false')..'\nNick render\t/'..ini.commands.nick_render..'\t'..string.format(ini.settings.nick_render and '{73b461}true' or '{dc4747}false')..'\nVehicle render\t/'..ini.commands.vehicle_render..'\t'..string.format(ini.settings.vehicle_render and '{73b461}true' or '{dc4747}false')..'\nObject render\t/'..ini.commands.object_wh..'\t'..string.format(ini.settings.object_wh and '{73b461}true' or '{dc4747}false')..'', 'Accept', 'Cancel', 5) -- ini.setting.object_wh
+sampShowDialog(1231, 'Script settings', 'Function\tCommand\tStatus\n' ..
+    'Bone WH\t/' .. ini.commands.bone_wh .. '\t' ..
+        string.format(ini.settings.bone_wh and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Static crosshair\t/' .. ini.commands.static_crosshair .. '\t' ..
+        string.format(ini.settings.static_crosshair and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'No spread\t/' .. ini.commands.no_spread .. '\t' ..
+        string.format(ini.settings.no_spread and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Auto reload\t/' .. ini.commands.auto_reload .. '\t' ..
+        string.format(ini.settings.auto_reload and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Extra WS\t/' .. ini.commands.extra_ws .. '\t' ..
+        string.format(ini.settings.extra_ws and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Anti mask\t/' .. ini.commands.anti_mask .. '\t' ..
+        string.format(ini.settings.anti_mask and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Stream info\t/' .. ini.commands.stream_info .. '\t' ..
+        string.format(ini.settings.stream_info and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Nick render\t/' .. ini.commands.nick_render .. '\t' ..
+        string.format(ini.settings.nick_render and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Vehicle render\t/' .. ini.commands.vehicle_render .. '\t' ..
+        string.format(ini.settings.vehicle_render and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Object render\t/' .. ini.commands.object_wh .. '\t' ..
+        string.format(ini.settings.object_wh and '{73b461}true' or '{dc4747}false') .. '\n' ..
+    'Anti drunk\t/' .. ini.commands.anti_drunk .. '\t' ..
+        string.format(ini.settings.anti_drunk and '{73b461}true' or '{dc4747}false'),
+    'Accept', 'Cancel', 5
+)
 end
 
 function dialogRespond()
@@ -418,6 +442,11 @@ function dialogRespond()
                 if list == 9 then
                     ini.settings.object_wh = not ini.settings.object_wh
                     object_wh(ini.settings.object_wh)
+                    showHelpDialog()
+                end
+                if list == 10 then
+                    ini.settings.anti_drunk = not ini.settings.anti_drunk
+                    sampAddChatMessage(ini.settings.anti_drunk and 'Activated!' or 'DeActivated!', -1)
                     showHelpDialog()
                 end
                 inicfg.save(ini, directIni)
@@ -898,7 +927,7 @@ function sampev.onSendGiveDamage(playerId, damage, weapon, bodypart)
 end
 
 function sampev.onSetPlayerDrunk(drunkLevel)
-    if ini.settings.antidrunk then
+    if ini.settings.anti_drunk then
         return false
     end
 end
