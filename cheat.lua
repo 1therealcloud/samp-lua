@@ -4,18 +4,20 @@ script_author('cloud')
 
 -- require
 
-require'lib.moonloader'
-local memory = require 'memory'
-local ffi = require "ffi"
-local sampev = require 'samp.events'
-local inicfg = require 'inicfg'
+require('lib.moonloader')
+local memory = require('memory')
 
 require('samp.synchronization')
-local sampfuncs = require('sampfuncs')
+local sampev = require('samp.events')
 local raknet = require('samp.raknet')
 
+local sampfuncs = require('sampfuncs')
+
+local ffi = require('ffi')
+local inicfg = require('inicfg')
+
 -- ini
-local script_name = thisScript().filename:match("^(.*)%.%w+$")
+local script_name = thisScript().filename:match('^(.*)%.%w+$')
 
 local directIni = ''..script_name..'.ini'
 
