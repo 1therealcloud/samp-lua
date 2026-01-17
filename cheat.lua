@@ -1,5 +1,5 @@
 script_name('cloud-multi-cheat')
-script_version('01.17.2026')
+script_version('01.17.2026rc1')
 script_author('cloud')
 
 -- require
@@ -14,6 +14,7 @@ local inicfg = require('inicfg')
 require('samp.synchronization')
 local sampfuncs = require('sampfuncs')
 local raknet = require('samp.raknet')
+local requests = require('requests')
 
 -- ini
 local script_name = thisScript().filename:match("^(.*)%.%w+$")
@@ -69,68 +70,36 @@ local airbrake_active = false
 local cjrun = false
 
 -- autoupdate
---     _   _   _ _____ ___  _   _ ____  ____    _  _____ _____ 
---    / \ | | | |_   _/ _ \| | | |  _ \|  _ \  / \|_   _| ____|
---   / _ \| | | | | || | | | | | | |_) | | | |/ _ \ | | |  _|  
---  / ___ \ |_| | | || |_| | |_| |  __/| |_| / ___ \| | | |___ 
--- /_/   \_\___/  |_| \___/ \___/|_|   |____/_/   \_\_| |_____|
--- Author: http://qrlk.me/samp
---
-function autoupdate(json_url, prefix)
-  local dlstatus = require('moonloader').download_status
-  local json = getWorkingDirectory() .. '\\'..thisScript().name..'-version.json'
-  if doesFileExist(json) then os.remove(json) end
-  downloadUrlToFile(json_url, json,
-    function(id, status, p1, p2)
-      if status == dlstatus.STATUSEX_ENDDOWNLOAD then
-        if doesFileExist(json) then
-          local f = io.open(json, 'r')
-          if f then
-            local info = decodeJson(f:read('*a'))
-            updatelink = info.updateurl
-            updateversion = info.latest
-            f:close()
-            os.remove(json)
-            if updateversion ~= thisScript().version then
-              lua_thread.create(function(prefix)
-                local dlstatus = require('moonloader').download_status
-                local color = -1
-                print((prefix..'Update detected. Trying to update from '..thisScript().version..' to '..updateversion), color)
-                wait(250)
-                downloadUrlToFile(updatelink, thisScript().path,
-                  function(id3, status1, p13, p23)
-                    if status1 == dlstatus.STATUS_DOWNLOADINGDATA then
-                      print(string.format('Downloaded %d of %d.', p13, p23))
-                    elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
-                      print('Update download completed.')
-                      print((prefix..'Update finished!'), color)
-                      flashActiveWindow()
-                      goupdatestatus = true
-                      lua_thread.create(function() wait(500) thisScript():reload() end)
-                    end
-                    if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
-                      if goupdatestatus == nil then
-                        print((prefix..'Update failed.'), color)
-                        update = false
-                      end
-                    end
-                  end
-                )
-                end, prefix
-              )
-            else
-              update = false
-              print('v'..thisScript().version..': No update required.')
-            end
-          end
+
+function update()
+    local raw = 'https://raw.githubusercontent.com/1therealcloud/samp-lua/refs/heads/master/version.json'
+    local dlstatus = require('moonloader').download_status
+
+    local f = {}
+    function f:getLastVersion()
+        local response = requests.get(raw)
+        if response.status_code == 200 then
+            return decodeJson(response.text)['latest']
         else
-          print('v'..thisScript().version..': Unable to check for updates.')
-          update = false
+            return 'UNKNOWN'
         end
-      end
     end
-  )
-  while update ~= false do wait(100) end
+    function f:download()
+        local response = requests.get(raw)
+        if response.status_code == 200 then
+            downloadUrlToFile(decodeJson(response.text)['updateurl'], thisScript().path, function (id, status, p1, p2)
+                print('Downloading '..decodeJson(response.text)['updateurl']..' to '..thisScript().path)
+                if status == dlstatus.STATUSEX_ENDDOWNLOAD then
+                    print('Script updated, restarting...')
+                    flashActiveWindow()
+                    thisScript():reload()
+                end
+            end)
+        else
+            print('Error, unable to apply update, code: '..response.status_code)
+        end
+    end
+    return f
 end
 
 -- main
@@ -138,9 +107,12 @@ end
 function main()
     while not isSampAvailable() do wait(100) end
     
-    autoupdate("https://raw.githubusercontent.com/1therealcloud/samp-lua/refs/heads/master/version.json", '['..string.upper(thisScript().name)..']: ')
-    
-    print("{73b461}Loaded!")
+    -- update
+    local lastver = update():getLastVersion()
+    print('{73b461}Loaded, version: '..lastver)
+    if thisScript().version ~= lastver then
+        update():download()
+    end
 
     writeMemory(0x58E1DD, 2, 0x9090, true) -- fast crosshair
     writeMemory(0x058E280, 1, 0xEB, true) -- fix crosshair
