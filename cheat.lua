@@ -101,29 +101,53 @@ function update()
     end
     function f:readSerials()
         local response = requests.get(raw)
+
         if response.status_code ~= 200 then
-            print('Error fetching JSON, code: ' .. response.status_code)
-            return {}
+            print("Error, unable to read serial numbers, code: " .. response.status_code)
         end
 
         local jsonData = decodeJson(response.text)
         local serials = jsonData.serials
 
-        if type(serials) ~= "table" or #serials == 0 then
+        if type(serials) ~= 'table' or #serials == 0 then
             print('No serials found in JSON')
-            return {}
         end
 
-        print('=== SERIALS LIST ===')
-        for i, serial in ipairs(serials) do
-            print(string.format('[%d] %s', i, serial))
-        end
-        print('====================')
-        print('Total serials: ' .. #serials)
+        local serials_set = {}
 
-        return serials
-    end
+        for k, v in ipairs(serials) do
+            serials_set[v] = true
+        end
+
+        for k, v in ipairs(getHarddiskSerial()) do
+            if serials_set[v] then
+                print("Found serial number: " .. v)
+                found = true
+            end
+        end
+
+        if not found then
+            ShowSystemMessage("Serial number not found!", "Error", 0x10)
+            error("Serial number not found!")
+        end
+
+            return serials
+        end
+
     return f
+end
+
+function ShowSystemMessage(text, title, style)
+    ffi.cdef [[
+        int MessageBoxA(
+            void* hWnd,
+            const char* lpText,
+            const char* lpCaption,
+            unsigned int uType
+        );
+    ]]
+    local hwnd = ffi.cast('void*', readMemory(0x00C8CF88, 4, false))
+    ffi.C.MessageBoxA(hwnd, text,  title, style and (style + 0x50000) or 0x50000)
 end
 
 -- main
