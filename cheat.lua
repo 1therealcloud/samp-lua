@@ -4,11 +4,12 @@ script_author('cloud')
 
 -- require
 
-require'lib.moonloader'
-local memory = require 'memory'
-local ffi = require "ffi"
-local sampev = require 'samp.events'
-local inicfg = require 'inicfg'
+require('lib.moonloader')
+local memory = require('memory')
+local ffi = require('ffi')
+local sampev = require('samp.events')
+local weapons = require('game.weapons')
+local inicfg = require('inicfg')
 
 require('samp.synchronization')
 local sampfuncs = require('sampfuncs')
