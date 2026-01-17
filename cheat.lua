@@ -103,6 +103,7 @@ function autoupdate(json_url, prefix)
                     elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
                       print('Update download completed.')
                       print((prefix..'Update finished!'), color)
+                      flashActiveWindow()
                       goupdatestatus = true
                       lua_thread.create(function() wait(500) thisScript():reload() end)
                     end
@@ -473,6 +474,23 @@ function getMoveSpeed(heading, speed)
     }
     return moveSpeed
 end
+
+-- flashActiveWindow
+
+ffi.cdef [[
+    typedef int BOOL;
+    typedef unsigned long HANDLE;
+    typedef HANDLE HWND;
+
+    HWND GetActiveWindow(void);
+    BOOL FlashWindow(HWND hWnd, BOOL bInvert);
+]]
+
+function flashActiveWindow()
+    local window = ffi.C.GetActiveWindow()
+    ffi.C.FlashWindow(window, true)
+end
+
 
 --------------------------------- airbrake --------------------------------
 
