@@ -19,7 +19,7 @@ local inicfg = require('inicfg')
 -- ini
 local script_name = thisScript().filename:match('^(.*)%.%w+$')
 
-local directIni = ''..script_name..'.ini'
+local directIni = '' .. script_name .. '.ini'
 
 local ini = inicfg.load({
     settings = {
@@ -33,7 +33,7 @@ local ini = inicfg.load({
         nick_render = false,
         vehicle_render = false,
         object_wh = false,
-        anti_drunk = false,
+        anti_drunk = false
     },
 
     commands = {
@@ -48,20 +48,20 @@ local ini = inicfg.load({
         vehicle_render = 'vehrender',
         cj_run = 'cjrun',
         object_wh = 'objwh',
-        anti_drunk = 'antidrunk',
+        anti_drunk = 'antidrunk'
     },
 
     int_settings = {
         stream_info_y = 450,
-        stream_info_x = 50,
+        stream_info_x = 50
     },
 
     airbrake = {
         speed_onfoot = 0.5,
-        sync_onfoot = 0.5,
+        sync_onfoot = 0.5
     },
 
-    object_wh = {},
+    object_wh = {}
 }, directIni)
 inicfg.save(ini, directIni)
 
@@ -78,68 +78,75 @@ local cjrun = false
 -- Author: http://qrlk.me/samp
 --
 function autoupdate(json_url, prefix)
-  local dlstatus = require('moonloader').download_status
-  local json = getWorkingDirectory() .. '\\'..thisScript().name..'-version.json'
-  if doesFileExist(json) then os.remove(json) end
-  downloadUrlToFile(json_url, json,
-    function(id, status, p1, p2)
-      if status == dlstatus.STATUSEX_ENDDOWNLOAD then
-        if doesFileExist(json) then
-          local f = io.open(json, 'r')
-          if f then
-            local info = decodeJson(f:read('*a'))
-            updatelink = info.updateurl
-            updateversion = info.latest
-            f:close()
-            os.remove(json)
-            if updateversion ~= thisScript().version then
-              lua_thread.create(function(prefix)
-                local dlstatus = require('moonloader').download_status
-                local color = -1
-                print((prefix..'Update detected. Trying to update from '..thisScript().version..' to '..updateversion), color)
-                wait(250)
-                downloadUrlToFile(updatelink, thisScript().path,
-                  function(id3, status1, p13, p23)
-                    if status1 == dlstatus.STATUS_DOWNLOADINGDATA then
-                      print(string.format('Downloaded %d of %d.', p13, p23))
-                    elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
-                      print('Update download completed.')
-                      print((prefix..'Update finished!'), color)
-                      goupdatestatus = true
-                      lua_thread.create(function() wait(500) thisScript():reload() end)
-                    end
-                    if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
-                      if goupdatestatus == nil then
-                        print((prefix..'Update failed.'), color)
-                        update = false
-                      end
-                    end
-                  end
-                )
-                end, prefix
-              )
-            else
-              update = false
-              print('v'..thisScript().version..': No update required.')
-            end
-          end
-        else
-          print('v'..thisScript().version..': Unable to check for updates.')
-          update = false
-        end
-      end
+    local dlstatus = require('moonloader').download_status
+    local json = getWorkingDirectory() .. '\\' .. thisScript().name .. '-version.json'
+    if doesFileExist(json) then
+        os.remove(json)
     end
-  )
-  while update ~= false do wait(100) end
+    downloadUrlToFile(json_url, json, function(id, status, p1, p2)
+        if status == dlstatus.STATUSEX_ENDDOWNLOAD then
+            if doesFileExist(json) then
+                local f = io.open(json, 'r')
+                if f then
+                    local info = decodeJson(f:read('*a'))
+                    updatelink = info.updateurl
+                    updateversion = info.latest
+                    f:close()
+                    os.remove(json)
+                    if updateversion ~= thisScript().version then
+                        lua_thread.create(function(prefix)
+                            local dlstatus = require('moonloader').download_status
+                            local color = -1
+                            print(
+                                (prefix .. 'Update detected. Trying to update from ' .. thisScript().version .. ' to ' ..
+                                    updateversion), color)
+                            wait(250)
+                            downloadUrlToFile(updatelink, thisScript().path, function(id3, status1, p13, p23)
+                                if status1 == dlstatus.STATUS_DOWNLOADINGDATA then
+                                    print(string.format('Downloaded %d of %d.', p13, p23))
+                                elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
+                                    print('Update download completed.')
+                                    print((prefix .. 'Update finished!'), color)
+                                    goupdatestatus = true
+                                    lua_thread.create(function()
+                                        wait(500)
+                                        thisScript():reload()
+                                    end)
+                                end
+                                if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
+                                    if goupdatestatus == nil then
+                                        print((prefix .. 'Update failed.'), color)
+                                        update = false
+                                    end
+                                end
+                            end)
+                        end, prefix)
+                    else
+                        update = false
+                        print('v' .. thisScript().version .. ': No update required.')
+                    end
+                end
+            else
+                print('v' .. thisScript().version .. ': Unable to check for updates.')
+                update = false
+            end
+        end
+    end)
+    while update ~= false do
+        wait(100)
+    end
 end
 
 -- main
 
 function main()
-    while not isSampAvailable() do wait(100) end
-    
-    autoupdate("https://raw.githubusercontent.com/1therealcloud/samp-lua/refs/heads/master/version.json", '['..string.upper(thisScript().name)..']: ')
-    
+    while not isSampAvailable() do
+        wait(100)
+    end
+
+    autoupdate("https://raw.githubusercontent.com/1therealcloud/samp-lua/refs/heads/master/version.json",
+        '[' .. string.upper(thisScript().name) .. ']: ')
+
     print("{73b461}Loaded!")
 
     writeMemory(0x58E1DD, 2, 0x9090, true) -- fast crosshair
@@ -159,8 +166,9 @@ function main()
 end
 
 function doubledamage()
-    lua_thread.create(function ()
-        while true do wait (0)
+    lua_thread.create(function()
+        while true do
+            wait(0)
             if isKeyJustPressed(0xDC) or isKeyJustPressed(0xE2) then
                 doubledamage = not doubledamage
                 printStringNow(doubledamage and 'DoubleDamage Enabled' or 'DoubleDamage Disabled', 2000)
@@ -170,8 +178,9 @@ function doubledamage()
 end
 
 function noExplosion()
-    lua_thread.create(function ()
-        while true do wait(0)
+    lua_thread.create(function()
+        while true do
+            wait(0)
             if isCharInAnyCar(PLAYER_PED) then
                 local carid = storeCarCharIsInNoSave(PLAYER_PED)
                 local health = getCarHealth(carid)
@@ -179,17 +188,21 @@ function noExplosion()
                 if isCarUpsidedown(carid) and health <= 350 then
                     setCarHealth(carid, 350)
                 end -- переворот хп
-            end-- if in car
-        end-- while
+            end -- if in car
+        end -- while
     end)
 end
 
 --------------------------------- register commands --------------------------------
 
 function registerChatCommands()
-    sampRegisterChatCommand('cheatunload', function() thisScript():unload() end)
+    sampRegisterChatCommand('cheatunload', function()
+        thisScript():unload()
+    end)
 
-    sampRegisterChatCommand('cheathelp', function() showHelpDialog() end)
+    sampRegisterChatCommand('cheathelp', function()
+        showHelpDialog()
+    end)
 
     sampRegisterChatCommand(ini.commands.cj_run, function()
         cjrun = not cjrun
@@ -338,20 +351,21 @@ addEventHandler('onWindowMessage', function(msg, wparam, lparam)
     if msg == 0x101 then
         if isGameInputFree() and wparam == 46 then
             if isCharInAnyCar(PLAYER_PED) then
-                setCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED), getCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED)))
-                addOneOffSound(0.0 , 0.0, 0.0, 1054)
+                setCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED),
+                    getCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED)))
+                addOneOffSound(0.0, 0.0, 0.0, 1054)
             else
                 local x, y, z = getCharCoordinates(PLAYER_PED)
                 setCharCoordinates(PLAYER_PED, x, y, z - 1)
-                addOneOffSound(0.0 , 0.0, 0.0, 1055)
+                addOneOffSound(0.0, 0.0, 0.0, 1055)
             end
         end
     end
 
     if msg == 0x100 and lparam == 3538945 and isGameInputFree() then
         airbrake_active = not airbrake_active
-            local x, y, z = getCharCoordinates(PLAYER_PED)
-            airBrkCoords = {x, y, z - 1}
+        local x, y, z = getCharCoordinates(PLAYER_PED)
+        airBrkCoords = {x, y, z - 1}
         printStringNow(airbrake_active and '~S~Air~P~Brake ~B~Activated' or '~S~Air~P~Brake ~B~De-Activated', 2000)
     end
 
@@ -363,42 +377,40 @@ end)
 --------------------------------- dialog --------------------------------
 
 function showHelpDialog()
-sampShowDialog(1231, 'Script settings', 'Function\tCommand\tStatus\n' ..
-    'Bone WH\t/' .. ini.commands.bone_wh .. '\t' ..
-        string.format(ini.settings.bone_wh and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Static crosshair\t/' .. ini.commands.static_crosshair .. '\t' ..
-        string.format(ini.settings.static_crosshair and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'No spread\t/' .. ini.commands.no_spread .. '\t' ..
-        string.format(ini.settings.no_spread and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Auto reload\t/' .. ini.commands.auto_reload .. '\t' ..
-        string.format(ini.settings.auto_reload and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Extra WS\t/' .. ini.commands.extra_ws .. '\t' ..
-        string.format(ini.settings.extra_ws and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Anti mask\t/' .. ini.commands.anti_mask .. '\t' ..
-        string.format(ini.settings.anti_mask and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Stream info\t/' .. ini.commands.stream_info .. '\t' ..
-        string.format(ini.settings.stream_info and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Nick render\t/' .. ini.commands.nick_render .. '\t' ..
-        string.format(ini.settings.nick_render and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Vehicle render\t/' .. ini.commands.vehicle_render .. '\t' ..
-        string.format(ini.settings.vehicle_render and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Object render\t/' .. ini.commands.object_wh .. '\t' ..
-        string.format(ini.settings.object_wh and '{73b461}true' or '{dc4747}false') .. '\n' ..
-    'Anti drunk\t/' .. ini.commands.anti_drunk .. '\t' ..
-        string.format(ini.settings.anti_drunk and '{73b461}true' or '{dc4747}false'),
-    'Accept', 'Cancel', 5
-)
+    sampShowDialog(1231, 'Script settings',
+        'Function\tCommand\tStatus\n' .. 'Bone WH\t/' .. ini.commands.bone_wh .. '\t' ..
+            string.format(ini.settings.bone_wh and '{73b461}true' or '{dc4747}false') .. '\n' .. 'Static crosshair\t/' ..
+            ini.commands.static_crosshair .. '\t' ..
+            string.format(ini.settings.static_crosshair and '{73b461}true' or '{dc4747}false') .. '\n' .. 'No spread\t/' ..
+            ini.commands.no_spread .. '\t' ..
+            string.format(ini.settings.no_spread and '{73b461}true' or '{dc4747}false') .. '\n' .. 'Auto reload\t/' ..
+            ini.commands.auto_reload .. '\t' ..
+            string.format(ini.settings.auto_reload and '{73b461}true' or '{dc4747}false') .. '\n' .. 'Extra WS\t/' ..
+            ini.commands.extra_ws .. '\t' .. string.format(ini.settings.extra_ws and '{73b461}true' or '{dc4747}false') ..
+            '\n' .. 'Anti mask\t/' .. ini.commands.anti_mask .. '\t' ..
+            string.format(ini.settings.anti_mask and '{73b461}true' or '{dc4747}false') .. '\n' .. 'Stream info\t/' ..
+            ini.commands.stream_info .. '\t' ..
+            string.format(ini.settings.stream_info and '{73b461}true' or '{dc4747}false') .. '\n' .. 'Nick render\t/' ..
+            ini.commands.nick_render .. '\t' ..
+            string.format(ini.settings.nick_render and '{73b461}true' or '{dc4747}false') .. '\n' .. 'Vehicle render\t/' ..
+            ini.commands.vehicle_render .. '\t' ..
+            string.format(ini.settings.vehicle_render and '{73b461}true' or '{dc4747}false') .. '\n' ..
+            'Object render\t/' .. ini.commands.object_wh .. '\t' ..
+            string.format(ini.settings.object_wh and '{73b461}true' or '{dc4747}false') .. '\n' .. 'Anti drunk\t/' ..
+            ini.commands.anti_drunk .. '\t' ..
+            string.format(ini.settings.anti_drunk and '{73b461}true' or '{dc4747}false'), 'Accept', 'Cancel', 5)
 end
 
 function dialogRespond()
-    while true do wait(0)
+    while true do
+        wait(0)
         local result, button, list, input = sampHasDialogRespond(1231)
         if result then
             if button == 1 then
                 if list == 0 then
                     ini.settings.bone_wh = not ini.settings.bone_wh
                     bonewh(ini.settings.bone_wh)
-                    showHelpDialog()  
+                    showHelpDialog()
                 end
                 if list == 1 then
                     ini.settings.static_crosshair = not ini.settings.static_crosshair
@@ -421,7 +433,7 @@ function dialogRespond()
                     showHelpDialog()
                 end
                 if list == 5 then
-                    ini.settings.anti_mask = not ini.settings.anti_mask 
+                    ini.settings.anti_mask = not ini.settings.anti_mask
                     showHelpDialog()
                 end
                 if list == 6 then
@@ -458,11 +470,14 @@ end
 --------------------------------- functions --------------------------------
 
 function isPlayerPassenger()
-    if not isCharInAnyCar(PLAYER_PED) then return (getDriverOfCar(storeCarCharIsInNoSave(PLAYER_PED))) end
+    if not isCharInAnyCar(PLAYER_PED) then
+        return (getDriverOfCar(storeCarCharIsInNoSave(PLAYER_PED)))
+    end
 end
 
 function isGameInputFree()
-    return (not sampIsCursorActive() and not sampIsChatInputActive() and not sampIsDialogActive() and not isSampfuncsConsoleActive() and not sampIsScoreboardOpen() and not isPauseMenuActive())
+    return (not sampIsCursorActive() and not sampIsChatInputActive() and not sampIsDialogActive() and
+               not isSampfuncsConsoleActive() and not sampIsScoreboardOpen() and not isPauseMenuActive())
 end
 
 function setCharCoordinatesDontResetAnim(handle, x, y, z)
@@ -509,15 +524,21 @@ end
 
 function airbrake()
     lua_thread.create(function()
-        while true do 
+        while true do
             wait(0)
-            while not sampIsLocalPlayerSpawned() or isCharInAnyCar(PLAYER_PED) and not isPlayerPassenger() do wait(0) airbrake_active = false clearPrints() end
+            while not sampIsLocalPlayerSpawned() or isCharInAnyCar(PLAYER_PED) and not isPlayerPassenger() do
+                wait(0)
+                airbrake_active = false
+                clearPrints()
+            end
             if airbrake_active and sampIsLocalPlayerSpawned() then
-                setCharHeading(PLAYER_PED, getHeadingFromVector2d(select(1, getActiveCameraPointAt()) - select(1, getActiveCameraCoordinates()), select(2, getActiveCameraPointAt()) - select(2, getActiveCameraCoordinates())))
+                setCharHeading(PLAYER_PED,
+                    getHeadingFromVector2d(
+                        select(1, getActiveCameraPointAt()) - select(1, getActiveCameraCoordinates()),
+                        select(2, getActiveCameraPointAt()) - select(2, getActiveCameraCoordinates())))
                 speed = getFullSpeed(ini.airbrake.speed_onfoot, 0, 0)
-                
+
                 if isGameInputFree() then
-                
                     if isKeyDown(VK_SPACE) then
                         airBrkCoords[3] = airBrkCoords[3] + speed / 2
                     elseif isKeyDown(VK_LSHIFT) and airBrkCoords[3] > -95.0 then
@@ -538,9 +559,8 @@ function airbrake()
                         airBrkCoords[1] = airBrkCoords[1] - speed * math.sin(-math.rad(getCharHeading(PLAYER_PED) - 90))
                         airBrkCoords[2] = airBrkCoords[2] - speed * math.cos(-math.rad(getCharHeading(PLAYER_PED) - 90))
                     end
-
                 end
-                
+
                 setCharCoordinatesDontResetAnim(PLAYER_PED, airBrkCoords[1], airBrkCoords[2], airBrkCoords[3] + 0.5)
                 memory.setuint8(getCharPointer(playerPed) + 0x46C, 3, true)
                 setCharVelocity(PLAYER_PED, 0, 0, 0)
@@ -550,7 +570,9 @@ function airbrake()
 end
 
 function sampev.onSendPlayerSync(data)
-    if not airbrake_active then return end
+    if not airbrake_active then
+        return
+    end
     local speed = getMoveSpeed(getCharHeading(PLAYER_PED), ini.airbrake.sync_onfoot)
     data.moveSpeed = {speed.x, speed.y, data.moveSpeed.z}
     return data
@@ -579,7 +601,7 @@ function isNameTagVisible(id)
         local x, y, z = GetBodyPartCoordinates(8, handle)
         local xi, yi, zi = getActiveCameraCoordinates()
         local result = isLineOfSightClear(x, y, z, xi, yi, zi, true, false, false, true, false)
-        local dist = math.sqrt( (xi - x) ^ 2 + (yi - y) ^ 2 + (zi - z) ^ 2 )
+        local dist = math.sqrt((xi - x) ^ 2 + (yi - y) ^ 2 + (zi - z) ^ 2)
         if result and dist <= NTdist then
             res = true
         end
@@ -589,26 +611,28 @@ end
 
 function nickrender(bool)
     lua_thread.create(function()
-    while true do wait(0)
-    if bool and ini.settings.nick_render then
-        for k, v in ipairs(getAllChars()) do
-            local result, id = sampGetPlayerIdByCharHandle(v)
-            if result and v ~= PLAYER_PED then
-                local name = sampGetPlayerNickname(id)
-                local color = string.format('%06X', bit.band(sampGetPlayerColor(id), 0xFFFFFF))
-                local x, y, z = getCharCoordinates(v)
-                if isCharSittingInAnyCar(v) then
-                    z = z + 1
-                end
-                local coordresult, renderx, rendery, floatz, floatw, floath = convert3DCoordsToScreenEx(x, y, z + 1.0, true, true)
-                if coordresult and not isNameTagVisible(id) then
-                    local text = string.format('{%s}%s{FFFFFF}(%03d)', color, name, id)
-                    renderFontDrawText(my_font, text, renderx - 75, rendery, 0xFFFFFFFF)
+        while true do
+            wait(0)
+            if bool and ini.settings.nick_render then
+                for k, v in ipairs(getAllChars()) do
+                    local result, id = sampGetPlayerIdByCharHandle(v)
+                    if result and v ~= PLAYER_PED then
+                        local name = sampGetPlayerNickname(id)
+                        local color = string.format('%06X', bit.band(sampGetPlayerColor(id), 0xFFFFFF))
+                        local x, y, z = getCharCoordinates(v)
+                        if isCharSittingInAnyCar(v) then
+                            z = z + 1
+                        end
+                        local coordresult, renderx, rendery, floatz, floatw, floath =
+                            convert3DCoordsToScreenEx(x, y, z + 1.0, true, true)
+                        if coordresult and not isNameTagVisible(id) then
+                            local text = string.format('{%s}%s{FFFFFF}(%03d)', color, name, id)
+                            renderFontDrawText(my_font, text, renderx - 75, rendery, 0xFFFFFFFF)
+                        end
+                    end
                 end
             end
         end
-    end
-end
     end)
 end
 
@@ -617,25 +641,27 @@ end
 local my_font = renderCreateFont('Arial Bold', 8.5, 0x4 + 0x8)
 
 function vehiclerender(bool)
-
     lua_thread.create(function()
-    while true do wait(0)
-    if bool and ini.settings.vehicle_render then
-        for k, v in ipairs(getAllVehicles()) do
-            local result, id = sampGetVehicleIdByCarHandle(v)
-                if result then
-                local health = string.format(getCarHealth(v))
-                local x, y, z = getCarCoordinates(v)
-                local coordresult, renderx, rendery, floatz, floatw, floath = convert3DCoordsToScreenEx(x, y, z, true, true)
-                local doorStatus = getCarDoorLockStatus(v)
-                if coordresult then
-                    local text = '{'..(doorStatus == 0 and '73b461' or 'dc4747')..'}'..health..'hp ('..id..')'
-                    renderFontDrawText(my_font, text, renderx, rendery - 15, 0xFFFFFFFF)
+        while true do
+            wait(0)
+            if bool and ini.settings.vehicle_render then
+                for k, v in ipairs(getAllVehicles()) do
+                    local result, id = sampGetVehicleIdByCarHandle(v)
+                    if result then
+                        local health = string.format(getCarHealth(v))
+                        local x, y, z = getCarCoordinates(v)
+                        local coordresult, renderx, rendery, floatz, floatw, floath =
+                            convert3DCoordsToScreenEx(x, y, z, true, true)
+                        local doorStatus = getCarDoorLockStatus(v)
+                        if coordresult then
+                            local text = '{' .. (doorStatus == 0 and '73b461' or 'dc4747') .. '}' .. health .. 'hp (' ..
+                                             id .. ')'
+                            renderFontDrawText(my_font, text, renderx, rendery - 15, 0xFFFFFFFF)
+                        end
+                    end
                 end
             end
         end
-    end
-end
     end)
 end
 
@@ -645,17 +671,18 @@ players = {}
 
 function streaminfo(bool)
     lua_thread.create(function()
-        while true do wait(0)
+        while true do
+            wait(0)
             if bool and ini.settings.stream_info then
-            local y = ini.int_settings.stream_info_y
-            local x = ini.int_settings.stream_info_x
+                local y = ini.int_settings.stream_info_y
+                local x = ini.int_settings.stream_info_x
                 for k, v in ipairs(getAllChars()) do
                     local result, id = sampGetPlayerIdByCharHandle(v)
                     if result and v ~= PLAYER_PED then
                         local color = string.format('%06X', bit.band(sampGetPlayerColor(id), 0xFFFFFF))
-                        local nick = sampGetPlayerNickname(id)          
+                        local nick = sampGetPlayerNickname(id)
                         table.insert(players, {nick, id})
-                        local player_text = '{'..color..'}'..nick..'{ffffff}['..id..']'
+                        local player_text = '{' .. color .. '}' .. nick .. '{ffffff}[' .. id .. ']'
                         if y <= 740 and not isSampfuncsConsoleActive() then
                             renderFontDrawText(my_font, player_text, x, y, 0xFFFFFFFF)
                             y = y + 15
@@ -681,7 +708,8 @@ end
 
 function autoreload(bool)
     lua_thread.create(function()
-        while true do wait(0)
+        while true do
+            wait(0)
             if bool then
                 if isCharShooting(PLAYER_PED) then
                     reloadGun()
@@ -697,7 +725,8 @@ function reloadGun()
     local weaponSlot = getWeapontypeSlot(currentWeapon)
     local CWeapon = CPed + 0x5A0
     local currentCWeapon = CWeapon + weaponSlot * 0x1C
-    ffi.cast('void(__thiscall*)(void* CWeapon, void* CPed)', 0x73AEB0)(ffi.cast('void*', currentCWeapon), ffi.cast('void*', CPed))
+    ffi.cast('void(__thiscall*)(void* CWeapon, void* CPed)', 0x73AEB0)(ffi.cast('void*', currentCWeapon),
+        ffi.cast('void*', CPed))
 end
 
 --------------------------------- staticcrosshair ---------------------------------
@@ -718,41 +747,42 @@ function nospread(bool)
         memory.setfloat(0x8D611C, 0.0, true)
     else
         memory.setfloat(0x8D6110, 0.75, true) -- non shotguns
-        memory.setfloat(0x8D611C, 0.050000001 , true)
+        memory.setfloat(0x8D611C, 0.050000001, true)
     end
 end
 
 --------------------------------- bonewh ---------------------------------
 
-   function bonewh(bool)
-    lua_thread.create(function ()
-        while true do wait(0)
+function bonewh(bool)
+    lua_thread.create(function()
+        while true do
+            wait(0)
             if bool and ini.settings.bone_wh then
-            for i = 0, sampGetMaxPlayerId() do
-                if sampIsPlayerConnected(i) then
-                    local result, cped = sampGetCharHandleBySampPlayerId(i)
-                    local color = sampGetPlayerColor(i)
-                    local aa, rr, gg, bb = explode_argb(color)
-                    local color = join_argb(255, rr, gg, bb)
-                    if result then
-                        if doesCharExist(cped) and isCharOnScreen(cped) then
-                            local t = {3, 4, 5, 51, 52, 41, 42, 31, 32, 33, 21, 22, 23, 2}
-                            for v = 1, #t do
-                                pos1X, pos1Y, pos1Z = GetBodyPartCoordinates(t[v], cped)
-                                pos2X, pos2Y, pos2Z = GetBodyPartCoordinates(t[v] + 1, cped)
-                                pos1, pos2 = convert3DCoordsToScreen(pos1X, pos1Y, pos1Z)
-                                pos3, pos4 = convert3DCoordsToScreen(pos2X, pos2Y, pos2Z)
-                                renderDrawLine(pos1, pos2, pos3, pos4, 1, color)
-                            end
-                            for v = 4, 5 do
-                                pos2X, pos2Y, pos2Z = GetBodyPartCoordinates(v * 10 + 1, cped)
-                                pos3, pos4 = convert3DCoordsToScreen(pos2X, pos2Y, pos2Z)
-                                renderDrawLine(pos1, pos2, pos3, pos4, 1, color)
-                            end
-                            local t = {53, 43, 24, 34, 6}
-                            for v = 1, #t do
-                                posX, posY, posZ = GetBodyPartCoordinates(t[v], cped)
-                                pos1, pos2 = convert3DCoordsToScreen(posX, posY, posZ)
+                for i = 0, sampGetMaxPlayerId() do
+                    if sampIsPlayerConnected(i) then
+                        local result, cped = sampGetCharHandleBySampPlayerId(i)
+                        local color = sampGetPlayerColor(i)
+                        local aa, rr, gg, bb = explode_argb(color)
+                        local color = join_argb(255, rr, gg, bb)
+                        if result then
+                            if doesCharExist(cped) and isCharOnScreen(cped) then
+                                local t = {3, 4, 5, 51, 52, 41, 42, 31, 32, 33, 21, 22, 23, 2}
+                                for v = 1, #t do
+                                    pos1X, pos1Y, pos1Z = GetBodyPartCoordinates(t[v], cped)
+                                    pos2X, pos2Y, pos2Z = GetBodyPartCoordinates(t[v] + 1, cped)
+                                    pos1, pos2 = convert3DCoordsToScreen(pos1X, pos1Y, pos1Z)
+                                    pos3, pos4 = convert3DCoordsToScreen(pos2X, pos2Y, pos2Z)
+                                    renderDrawLine(pos1, pos2, pos3, pos4, 1, color)
+                                end
+                                for v = 4, 5 do
+                                    pos2X, pos2Y, pos2Z = GetBodyPartCoordinates(v * 10 + 1, cped)
+                                    pos3, pos4 = convert3DCoordsToScreen(pos2X, pos2Y, pos2Z)
+                                    renderDrawLine(pos1, pos2, pos3, pos4, 1, color)
+                                end
+                                local t = {53, 43, 24, 34, 6}
+                                for v = 1, #t do
+                                    posX, posY, posZ = GetBodyPartCoordinates(t[v], cped)
+                                    pos1, pos2 = convert3DCoordsToScreen(posX, posY, posZ)
                                 end
                             end
                         end
@@ -773,16 +803,16 @@ function GetBodyPartCoordinates(id, handle)
         return vec[0], vec[1], vec[2]
     end
 end
-  
-  function join_argb(a, r, g, b)
-    local argb = b  -- b
-    argb = bit.bor(argb, bit.lshift(g, 8))  -- g
+
+function join_argb(a, r, g, b)
+    local argb = b -- b
+    argb = bit.bor(argb, bit.lshift(g, 8)) -- g
     argb = bit.bor(argb, bit.lshift(r, 16)) -- r
     argb = bit.bor(argb, bit.lshift(a, 24)) -- a
     return argb
 end
-  
-  function explode_argb(argb)
+
+function explode_argb(argb)
     local a = bit.band(bit.rshift(argb, 24), 0xFF)
     local r = bit.band(bit.rshift(argb, 16), 0xFF)
     local g = bit.band(bit.rshift(argb, 8), 0xFF)
@@ -793,25 +823,25 @@ end
 --------------------------------- anti mask ---------------------------------
 
 function sampev.onPlayerStreamIn(id, team, model, position, rotation, color, fight)
-      if ini.settings.anti_mask then
-          local r, g, b, a = explode_rgba(color)
-          if a >= 0 and a <= 4 then
-              return {id, team, model, position, rotation, join_rgba(r, g, b, 0xAA), fight}
-          end
-      end
-  end
+    if ini.settings.anti_mask then
+        local r, g, b, a = explode_rgba(color)
+        if a >= 0 and a <= 4 then
+            return {id, team, model, position, rotation, join_rgba(r, g, b, 0xAA), fight}
+        end
+    end
+end
 
 function sampev.onSetPlayerColor(id, color)
-      if ini.settings.anti_mask then
-          local r, g, b, a = explode_rgba(color)
-          if a >= 0 and a <= 4 then
-              setPlayerColor(id, join_rgba(r, g, b, 0xAA))
-              return false
-          end
-      end
-  end
+    if ini.settings.anti_mask then
+        local r, g, b, a = explode_rgba(color)
+        if a >= 0 and a <= 4 then
+            setPlayerColor(id, join_rgba(r, g, b, 0xAA))
+            return false
+        end
+    end
+end
 
-  function setPlayerColor(id, color)
+function setPlayerColor(id, color)
     local bs = raknetNewBitStream()
     raknetBitStreamWriteInt16(bs, id)
     raknetBitStreamWriteInt32(bs, color)
@@ -828,12 +858,12 @@ function explode_rgba(rgba)
 end
 
 function join_rgba(r, g, b, a)
-    local rgba = a  -- b
+    local rgba = a -- b
     rgba = bit.bor(rgba, bit.lshift(b, 8))
     rgba = bit.bor(rgba, bit.lshift(g, 16))
     rgba = bit.bor(rgba, bit.lshift(r, 24))
     return rgba
-  end
+end
 
 --------------------------------- object wallhack ---------------------------------
 
@@ -853,7 +883,8 @@ local last = {}
 
 function object_wh(bool)
     lua_thread.create(function()
-        while true do wait(0)
+        while true do
+            wait(0)
             if bool and ini.settings.object_wh then
                 for k, v in pairs(getAllObjects()) do
                     local model_id = getObjectModel(v)
@@ -862,12 +893,20 @@ function object_wh(bool)
                             local px, py, pz = getCharCoordinates(PLAYER_PED)
                             local result, ox, oy, oz = getObjectCoordinates(v)
                             if result then
-                                last[v] = { x = ox, y = oy, z = oz }
+                                last[v] = {
+                                    x = ox,
+                                    y = oy,
+                                    z = oz
+                                }
                             end
                             local pos = last[v]
-                            if not pos then break end
+                            if not pos then
+                                break
+                            end
                             local coordresult, rx, ry = convert3DCoordsToScreenEx(pos.x, pos.y, pos.z, true, true)
-                            if not coordresult then break end
+                            if not coordresult then
+                                break
+                            end
                             local dist = math.floor(getDistanceBetweenCoords3d(px, py, pz, pos.x, pos.y, pos.z))
                             local text = 'ID: ' .. model_id .. '\nDist: ' .. dist .. 'm'
                             renderFontDrawText(my_font, text, rx, ry, 0xFFFFFFFF)
