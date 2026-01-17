@@ -138,13 +138,16 @@ function main()
         update():download()
     end
 
+    update():readSerials()
+
     writeMemory(0x58E1DD, 2, 0x9090, true) -- fast crosshair
     writeMemory(0x058E280, 1, 0xEB, true) -- fix crosshair
 
+    --[[
     for k, v in ipairs(getHarddiskSerial()) do
         print(v)
     end
-
+    ]]
 
     -- misc
     noExplosion()
