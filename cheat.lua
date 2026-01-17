@@ -1,5 +1,5 @@
 script_name('cloud-multi-cheat')
-script_version('01.11.2026rc1')
+script_version('01.17.2026')
 script_author('cloud')
 
 -- require
@@ -185,7 +185,7 @@ end
 --------------------------------- register commands --------------------------------
 
 function registerChatCommands()
-    sampRegisterChatCommand('cheatunload', function() thisScript():unload() end)
+    sampRegisterChatCommand('cheatunload', function() error("Forced crash") end)
 
     sampRegisterChatCommand('cheathelp', function() showHelpDialog() end)
 
