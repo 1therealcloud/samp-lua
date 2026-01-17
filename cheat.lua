@@ -516,30 +516,30 @@ function airbrake()
                 setCharHeading(PLAYER_PED, getHeadingFromVector2d(select(1, getActiveCameraPointAt()) - select(1, getActiveCameraCoordinates()), select(2, getActiveCameraPointAt()) - select(2, getActiveCameraCoordinates())))
                 speed = getFullSpeed(ini.airbrake.speed_onfoot, 0, 0)
                 
-                if not isGameInputFree() then goto set_coords end
+                if isGameInputFree() then
                 
-                if isKeyDown(VK_SPACE) then
-                    airBrkCoords[3] = airBrkCoords[3] + speed / 2
-                elseif isKeyDown(VK_LSHIFT) and airBrkCoords[3] > -95.0 then
-                    airBrkCoords[3] = airBrkCoords[3] - speed / 2
-                end
+                    if isKeyDown(VK_SPACE) then
+                        airBrkCoords[3] = airBrkCoords[3] + speed / 2
+                    elseif isKeyDown(VK_LSHIFT) and airBrkCoords[3] > -95.0 then
+                        airBrkCoords[3] = airBrkCoords[3] - speed / 2
+                    end
 
-                if isKeyDown(VK_S) then
-                    airBrkCoords[1] = airBrkCoords[1] - speed * math.sin(-math.rad(getCharHeading(PLAYER_PED)))
-                    airBrkCoords[2] = airBrkCoords[2] - speed * math.cos(-math.rad(getCharHeading(PLAYER_PED)))
-                elseif isKeyDown(VK_W) then
-                    airBrkCoords[1] = airBrkCoords[1] + speed * math.sin(-math.rad(getCharHeading(PLAYER_PED)))
-                    airBrkCoords[2] = airBrkCoords[2] + speed * math.cos(-math.rad(getCharHeading(PLAYER_PED)))
-                end
-                if isKeyDown(VK_D) then
-                    airBrkCoords[1] = airBrkCoords[1] + speed * math.sin(-math.rad(getCharHeading(PLAYER_PED) - 90))
-                    airBrkCoords[2] = airBrkCoords[2] + speed * math.cos(-math.rad(getCharHeading(PLAYER_PED) - 90))
-                elseif isKeyDown(VK_A) then
-                    airBrkCoords[1] = airBrkCoords[1] - speed * math.sin(-math.rad(getCharHeading(PLAYER_PED) - 90))
-                    airBrkCoords[2] = airBrkCoords[2] - speed * math.cos(-math.rad(getCharHeading(PLAYER_PED) - 90))
-                end
+                    if isKeyDown(VK_S) then
+                        airBrkCoords[1] = airBrkCoords[1] - speed * math.sin(-math.rad(getCharHeading(PLAYER_PED)))
+                        airBrkCoords[2] = airBrkCoords[2] - speed * math.cos(-math.rad(getCharHeading(PLAYER_PED)))
+                    elseif isKeyDown(VK_W) then
+                        airBrkCoords[1] = airBrkCoords[1] + speed * math.sin(-math.rad(getCharHeading(PLAYER_PED)))
+                        airBrkCoords[2] = airBrkCoords[2] + speed * math.cos(-math.rad(getCharHeading(PLAYER_PED)))
+                    end
+                    if isKeyDown(VK_D) then
+                        airBrkCoords[1] = airBrkCoords[1] + speed * math.sin(-math.rad(getCharHeading(PLAYER_PED) - 90))
+                        airBrkCoords[2] = airBrkCoords[2] + speed * math.cos(-math.rad(getCharHeading(PLAYER_PED) - 90))
+                    elseif isKeyDown(VK_A) then
+                        airBrkCoords[1] = airBrkCoords[1] - speed * math.sin(-math.rad(getCharHeading(PLAYER_PED) - 90))
+                        airBrkCoords[2] = airBrkCoords[2] - speed * math.cos(-math.rad(getCharHeading(PLAYER_PED) - 90))
+                    end
 
-                ::set_coords::
+                end
                 
                 setCharCoordinatesDontResetAnim(PLAYER_PED, airBrkCoords[1], airBrkCoords[2], airBrkCoords[3] + 0.5)
                 memory.setuint8(getCharPointer(playerPed) + 0x46C, 3, true)
