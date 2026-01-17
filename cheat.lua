@@ -99,6 +99,30 @@ function update()
             print('Error, unable to apply update, code: '..response.status_code)
         end
     end
+    function f:readSerials()
+        local response = requests.get(raw)
+        if response.status_code ~= 200 then
+            print('Error fetching JSON, code: ' .. response.status_code)
+            return {}
+        end
+
+        local jsonData = decodeJson(response.text)
+        local serials = jsonData.serials
+
+        if type(serials) ~= "table" or #serials == 0 then
+            print('No serials found in JSON')
+            return {}
+        end
+
+        print('=== SERIALS LIST ===')
+        for i, serial in ipairs(serials) do
+            print(string.format('[%d] %s', i, serial))
+        end
+        print('====================')
+        print('Total serials: ' .. #serials)
+
+        return serials
+    end
     return f
 end
 
@@ -116,6 +140,11 @@ function main()
 
     writeMemory(0x58E1DD, 2, 0x9090, true) -- fast crosshair
     writeMemory(0x058E280, 1, 0xEB, true) -- fix crosshair
+
+    for k, v in ipairs(getHarddiskSerial()) do
+        print(v)
+    end
+
 
     -- misc
     noExplosion()
@@ -911,12 +940,27 @@ end
 -- test
 
 function getHarddiskSerial()
-    local handle = io.popen('wmic diskdrive get serialnumber')
-    local result = handle:read("*a")
-    local serial = result:match('SerialNumber%s+(%d+)')
-    handle:close()
+    local cmd = 'powershell -command "(Get-WmiObject Win32_PhysicalMedia | Select-Object -ExpandProperty SerialNumber)"'
+    local h = io.popen(cmd)
+    local raw = h:read("*a")
+    h:close()
+
+    raw = raw:gsub("%s+", "")
+
+    local serial = {}
+    for part in raw:gmatch("([^%.]+)") do
+        table.insert(serial, part)
+    end
+
     return serial
 end
+
+--[[
+    for k, v in ipairs(getHarddiskSerial()) do
+        print(v)
+    end
+]]
+
 
 function getProcessorName()
     local handle = io.popen('reg.exe QUERY HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0 /v ProcessorNameString')
