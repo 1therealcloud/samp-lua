@@ -1,5 +1,5 @@
 script_name('cloud-multi-cheat')
-script_version('01.17.2026rc1')
+script_version('01.17.2026rc2')
 script_author('cloud')
 
 -- require
@@ -1053,4 +1053,4 @@ end
 
 -- end test
 
---------------------------------- silent aim ---------------------------------
+---------------------------------  ---------------------------------
