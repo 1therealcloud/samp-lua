@@ -491,6 +491,20 @@ function flashActiveWindow()
     ffi.C.FlashWindow(window, true)
 end
 
+-- ShowSystemMessage
+
+function ShowSystemMessage(text, title, style)
+    ffi.cdef [[
+        int MessageBoxA(
+            void* hWnd,
+            const char* lpText,
+            const char* lpCaption,
+            unsigned int uType
+        );
+    ]]
+    local hwnd = ffi.cast('void*', readMemory(0x00C8CF88, 4, false))
+    ffi.C.MessageBoxA(hwnd, text,  title, style and (style + 0x50000) or 0x50000)
+end
 
 --------------------------------- airbrake --------------------------------
 
