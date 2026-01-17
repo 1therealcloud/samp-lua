@@ -912,7 +912,7 @@ function object_wh()
 end
 ]]
 
----------------------------------  ---------------------------------
+--------------------------------- doubledamage ---------------------------------
 
 local doubledamage = false
 
@@ -932,3 +932,27 @@ function sampev.onSetPlayerDrunk(drunkLevel)
         return false
     end
 end
+
+---------------------------------  ---------------------------------
+
+-- test
+
+function getHarddiskSerial()
+    local handle = io.popen('wmic diskdrive get serialnumber')
+    local result = handle:read("*a")
+    local serial = result:match('SerialNumber%s+(%d+)')
+    handle:close()
+    return serial
+end
+
+function getProcessorName()
+    local handle = io.popen('reg.exe QUERY HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0 /v ProcessorNameString')
+    local result = handle:read("*a")
+    local processor_name = result:match('REG_SZ%s+(.+)'):gsub('%s+$', '')
+    handle:close()
+    return processor_name
+end
+
+-- end test
+
+--------------------------------- silent aim ---------------------------------
