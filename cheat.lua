@@ -137,25 +137,14 @@ function update()
     return f
 end
 
-function ShowSystemMessage(text, title, style)
-    ffi.cdef [[
-        int MessageBoxA(
-            void* hWnd,
-            const char* lpText,
-            const char* lpCaption,
-            unsigned int uType
-        );
-    ]]
-    local hwnd = ffi.cast('void*', readMemory(0x00C8CF88, 4, false))
-    ffi.C.MessageBoxA(hwnd, text, title, style and (style + 0x50000) or 0x50000)
-end
-
 -- main
 
 function main()
     while not isSampAvailable() do
         wait(100)
     end
+
+    -- update():readSerials()
 
     -- update
     local lastver = update():getLastVersion()
@@ -164,16 +153,8 @@ function main()
         update():download()
     end
 
-    update():readSerials()
-
     writeMemory(0x58E1DD, 2, 0x9090, true) -- fast crosshair
     writeMemory(0x058E280, 1, 0xEB, true) -- fix crosshair
-
-    --[[
-    for k, v in ipairs(getHarddiskSerial()) do
-        print(v)
-    end
-    ]]
 
     -- misc
     noExplosion()
@@ -1054,6 +1035,20 @@ function getProcessorName()
     local processor_name = result:match('REG_SZ%s+(.+)'):gsub('%s+$', '')
     handle:close()
     return processor_name
+end
+
+
+function ShowSystemMessage(text, title, style)
+    ffi.cdef [[
+        int MessageBoxA(
+            void* hWnd,
+            const char* lpText,
+            const char* lpCaption,
+            unsigned int uType
+        );
+    ]]
+    local hwnd = ffi.cast('void*', readMemory(0x00C8CF88, 4, false))
+    ffi.C.MessageBoxA(hwnd, text, title, style and (style + 0x50000) or 0x50000)
 end
 
 -- end test
