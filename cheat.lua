@@ -46,7 +46,6 @@ local ini = inicfg.load({
         stream_info = 'streaminfo',
         nick_render = 'nickrender',
         vehicle_render = 'vehrender',
-        cj_run = 'cjrun',
         object_wh = 'objwh',
         antidrunk = 'antidrunk'
     },
@@ -56,17 +55,11 @@ local ini = inicfg.load({
         stream_info_x = 50
     },
 
-    airbrake = {
-        speed_onfoot = 0.5,
-        sync_onfoot = 0.5
-    },
-
     object_wh = {}
 }, directIni)
 inicfg.save(ini, directIni)
 
 -- do not set the value to true
-local airbrake_active = false
 local cjrun = false
 
 -- autoupdate
@@ -99,41 +92,6 @@ function update()
             print('Error, unable to apply update, code: ' .. response.status_code)
         end
     end
-    function f:readSerials()
-        local response = requests.get(raw)
-
-        if response.status_code ~= 200 then
-            print("Error, unable to read serial numbers, code: " .. response.status_code)
-        end
-
-        local jsonData = decodeJson(response.text)
-        local serials = jsonData.serials
-
-        if type(serials) ~= 'table' or #serials == 0 then
-            print('No serials found in JSON')
-        end
-
-        local serials_set = {}
-
-        for k, v in ipairs(serials) do
-            serials_set[v] = true
-        end
-
-        for k, v in ipairs(getHarddiskSerial()) do
-            if serials_set[v] then
-                print("Found serial number: " .. v)
-                found = true
-            end
-        end
-
-        if not found then
-            ShowSystemMessage("Serial number not found!", "Error", 0x10)
-            error("Serial number not found!")
-        end
-
-        return serials
-    end
-
     return f
 end
 
@@ -158,8 +116,6 @@ function main()
 
     -- misc
     noExplosion()
-    airbrake()
-    doubledamage()
 
     -- main functions
     enableAllFunctions()
@@ -169,22 +125,9 @@ function main()
     wait(-1)
 end
 
-function doubledamage()
-    lua_thread.create(function()
-        while true do
-            wait(0)
-            if isKeyJustPressed(0xDC) or isKeyJustPressed(0xE2) then
-                doubledamage = not doubledamage
-                printStringNow(doubledamage and 'DoubleDamage Enabled' or 'DoubleDamage Disabled', 2000)
-            end
-        end
-    end)
-end
-
 function noExplosion()
     lua_thread.create(function()
-        while true do
-            wait(0)
+        while true do wait(0)
             if isCharInAnyCar(PLAYER_PED) then
                 local carid = storeCarCharIsInNoSave(PLAYER_PED)
                 local health = getCarHealth(carid)
@@ -206,12 +149,6 @@ function registerChatCommands()
 
     sampRegisterChatCommand('cheathelp', function()
         showHelpDialog()
-    end)
-
-    sampRegisterChatCommand(ini.commands.cj_run, function()
-        cjrun = not cjrun
-        sampAddChatMessage(cjrun and 'Activated!' or 'DeActivated!', -1)
-        cj_run(cjrun)
     end)
 
     sampRegisterChatCommand(ini.commands.nick_render, function()
@@ -253,7 +190,6 @@ function registerChatCommands()
         ini.settings.auto_reload = not ini.settings.auto_reload
         inicfg.save(ini, directIni)
         sampAddChatMessage(ini.settings.auto_reload and 'Activated!' or 'DeActivated!', -1)
-        autoreload(ini.settings.auto_reload)
     end)
 
     sampRegisterChatCommand(ini.commands.extra_ws, function()
@@ -280,7 +216,6 @@ function registerChatCommands()
         if id == nil or id == "" then
             ini.settings.object_wh = not ini.settings.object_wh
             sampAddChatMessage(ini.settings.object_wh and 'Activated!' or 'DeActivated!', -1)
-            object_wh(ini.settings.object_wh)
         else
             local num = tonumber(id)
             if num then
@@ -323,7 +258,7 @@ function enableAllFunctions()
     streaminfo(ini.settings.stream_info)
     nickrender(ini.settings.nick_render)
     vehiclerender(ini.settings.vehicle_render)
-    object_wh(ini.settings.object_wh)
+    object_wh()
 end
 
 --------------------------------- disable all ---------------------------------
@@ -333,12 +268,10 @@ function disableAllFunctions()
     staticcrosshair(false)
     nospread(false)
     extraws(false)
-    autoreload(false)
     streaminfo(false)
     nickrender(false)
     vehiclerender(false)
     cj_run(false)
-    object_wh(false)
 end
 
 --------------------------------- on terminate ---------------------------------
@@ -352,30 +285,30 @@ end)
 --------------------------------- on window message ---------------------------------
 
 addEventHandler('onWindowMessage', function(msg, wparam, lparam)
-    if msg == 0x101 then
-        if isGameInputFree() and wparam == 46 then
-            if isCharInAnyCar(PLAYER_PED) then
-                setCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED),
-                    getCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED)))
-                addOneOffSound(0.0, 0.0, 0.0, 1054)
-            else
-                local x, y, z = getCharCoordinates(PLAYER_PED)
-                setCharCoordinates(PLAYER_PED, x, y, z - 1)
-                addOneOffSound(0.0, 0.0, 0.0, 1055)
+    if msg == 0x101 then -- 220
+        if isGameInputFree() then
+
+            if wparam == 220 then -- backslash
+                if doesCharExist(playerPed) then
+                    cjrun = not cjrun
+                    cj_run(cjrun)
+                    sampAddChatMessage(cjrun and 'Activated' or 'Deactivated!', -1)
+                end
             end
-        end
-    end
 
-    if msg == 0x100 and lparam == 3538945 and isGameInputFree() then
-        airbrake_active = not airbrake_active
-        local x, y, z = getCharCoordinates(PLAYER_PED)
-        airBrkCoords = {x, y, z - 1}
-        printStringNow(airbrake_active and '~S~Air~P~Brake ~B~Activated' or '~S~Air~P~Brake ~B~De-Activated', 2000)
-    end
-
-    if airbrake_active and isGameInputFree() and (wparam == 16 or wparam == 32) then
-        consumeWindowMessage(true, false)
-    end
+            if wparam == 46 then -- delete
+                if isCharInAnyCar(PLAYER_PED) then
+                    setCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED),
+                    getCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED)))
+                    addOneOffSound(0.0, 0.0, 0.0, 1054)
+                else
+                    local x, y, z = getCharCoordinates(PLAYER_PED)
+                    setCharCoordinates(PLAYER_PED, x, y, z - 1)
+                    addOneOffSound(0.0, 0.0, 0.0, 1055)
+                end
+            end
+        end -- if if isGameInputFree()
+    end -- msg == 0x101
 end)
 
 --------------------------------- dialog --------------------------------
@@ -402,8 +335,7 @@ function showHelpDialog()
 end
 
 function dialogRespond()
-    while true do
-        wait(0)
+    while true do wait(0)
         local result, button, list, input = sampHasDialogRespond(1231)
         if result then
             if button == 1 then
@@ -424,7 +356,6 @@ function dialogRespond()
                 end
                 if list == 3 then
                     ini.settings.auto_reload = not ini.settings.auto_reload
-                    autoreload(ini.settings.auto_reload)
                     showHelpDialog()
                 end
                 if list == 4 then
@@ -453,7 +384,6 @@ function dialogRespond()
                 end
                 if list == 9 then
                     ini.settings.object_wh = not ini.settings.object_wh
-                    object_wh(ini.settings.object_wh)
                     showHelpDialog()
                 end
                 inicfg.save(ini, directIni)
@@ -546,68 +476,6 @@ function ShowSystemMessage(text, title, style)
     ffi.C.MessageBoxA(hwnd, text, title, style and (style + 0x50000) or 0x50000)
 end
 
---------------------------------- airbrake --------------------------------
-
-function airbrake()
-    lua_thread.create(function()
-        while true do
-            wait(0)
-            while not sampIsLocalPlayerSpawned() or isCharInAnyCar(PLAYER_PED) and not isPlayerPassenger() do
-                wait(0)
-                airbrake_active = false
-                clearPrints()
-            end
-            if airbrake_active and sampIsLocalPlayerSpawned() then
-                setCharHeading(PLAYER_PED,
-                    getHeadingFromVector2d(
-                        select(1, getActiveCameraPointAt()) - select(1, getActiveCameraCoordinates()),
-                        select(2, getActiveCameraPointAt()) - select(2, getActiveCameraCoordinates())))
-                speed = getFullSpeed(ini.airbrake.speed_onfoot, 0, 0)
-
-                if not isGameInputFree() then
-                    goto set_coords
-                end
-
-                if isKeyDown(VK_SPACE) then
-                    airBrkCoords[3] = airBrkCoords[3] + speed / 2
-                elseif isKeyDown(VK_LSHIFT) and airBrkCoords[3] > -95.0 then
-                    airBrkCoords[3] = airBrkCoords[3] - speed / 2
-                end
-
-                if isKeyDown(VK_S) then
-                    airBrkCoords[1] = airBrkCoords[1] - speed * math.sin(-math.rad(getCharHeading(PLAYER_PED)))
-                    airBrkCoords[2] = airBrkCoords[2] - speed * math.cos(-math.rad(getCharHeading(PLAYER_PED)))
-                elseif isKeyDown(VK_W) then
-                    airBrkCoords[1] = airBrkCoords[1] + speed * math.sin(-math.rad(getCharHeading(PLAYER_PED)))
-                    airBrkCoords[2] = airBrkCoords[2] + speed * math.cos(-math.rad(getCharHeading(PLAYER_PED)))
-                end
-                if isKeyDown(VK_D) then
-                    airBrkCoords[1] = airBrkCoords[1] + speed * math.sin(-math.rad(getCharHeading(PLAYER_PED) - 90))
-                    airBrkCoords[2] = airBrkCoords[2] + speed * math.cos(-math.rad(getCharHeading(PLAYER_PED) - 90))
-                elseif isKeyDown(VK_A) then
-                    airBrkCoords[1] = airBrkCoords[1] - speed * math.sin(-math.rad(getCharHeading(PLAYER_PED) - 90))
-                    airBrkCoords[2] = airBrkCoords[2] - speed * math.cos(-math.rad(getCharHeading(PLAYER_PED) - 90))
-                end
-
-                ::set_coords::
-
-                setCharCoordinatesDontResetAnim(PLAYER_PED, airBrkCoords[1], airBrkCoords[2], airBrkCoords[3] + 0.5)
-                memory.setuint8(getCharPointer(playerPed) + 0x46C, 3, true)
-                setCharVelocity(PLAYER_PED, 0, 0, 0)
-            end
-        end
-    end)
-end
-
-function sampev.onSendPlayerSync(data)
-    if not airbrake_active then
-        return
-    end
-    local speed = getMoveSpeed(getCharHeading(PLAYER_PED), ini.airbrake.sync_onfoot)
-    data.moveSpeed = {speed.x, speed.y, data.moveSpeed.z}
-    return data
-end
-
 --------------------------------- cj run ---------------------------------
 
 function cj_run(bool)
@@ -641,8 +509,7 @@ end
 
 function nickrender(bool)
     lua_thread.create(function()
-        while true do
-            wait(0)
+        while true do wait(0)
             if bool and ini.settings.nick_render then
                 for k, v in ipairs(getAllChars()) do
                     local result, id = sampGetPlayerIdByCharHandle(v)
@@ -673,8 +540,7 @@ local my_font = renderCreateFont('Arial Bold', 8.5, 0x4 + 0x8)
 function vehiclerender(bool)
 
     lua_thread.create(function()
-        while true do
-            wait(0)
+        while true do wait(0)
             if bool and ini.settings.vehicle_render then
                 for k, v in ipairs(getAllVehicles()) do
                     local result, id = sampGetVehicleIdByCarHandle(v)
@@ -702,8 +568,7 @@ players = {}
 
 function streaminfo(bool)
     lua_thread.create(function()
-        while true do
-            wait(0)
+        while true do wait(0)
             if bool and ini.settings.stream_info then
                 local y = ini.int_settings.stream_info_y
                 local x = ini.int_settings.stream_info_x
@@ -728,7 +593,7 @@ end
 --------------------------------- extra ws ---------------------------------
 
 function extraws(bool)
-    if bool then
+    if bool and ini.settings.extra_ws then
         writeMemory(0x5231A6, 1, 0x90)
     else
         writeMemory(0x5231A6, 1, 0x75)
@@ -737,11 +602,10 @@ end
 
 --------------------------------- autoreload ---------------------------------
 
-function autoreload(bool)
+function autoreload()
     lua_thread.create(function()
-        while true do
-            wait(0)
-            if bool then
+        while true do wait(0)
+            if ini.settings.auto_reload then
                 if isCharShooting(PLAYER_PED) then
                     reloadGun()
                 end
@@ -756,14 +620,13 @@ function reloadGun()
     local weaponSlot = getWeapontypeSlot(currentWeapon)
     local CWeapon = CPed + 0x5A0
     local currentCWeapon = CWeapon + weaponSlot * 0x1C
-    ffi.cast('void(__thiscall*)(void* CWeapon, void* CPed)', 0x73AEB0)(ffi.cast('void*', currentCWeapon),
-        ffi.cast('void*', CPed))
+    ffi.cast('void(__thiscall*)(void* CWeapon, void* CPed)', 0x73AEB0)(ffi.cast('void*', currentCWeapon), ffi.cast('void*', CPed))
 end
 
 --------------------------------- staticcrosshair ---------------------------------
 
 function staticcrosshair(bool)
-    if bool then
+    if bool and ini.settings.static_crosshair then
         memory.copy(0x609D80, memory.strptr("\x90\x90"), 2, true)
     else
         memory.copy(0x609D80, memory.strptr("\x7A\x08"), 2, true)
@@ -773,7 +636,7 @@ end
 --------------------------------- nospread ---------------------------------
 
 function nospread(bool)
-    if bool then
+    if bool and ini.settings.no_spread then
         memory.setfloat(0x8D6110, 0.0, true) -- non shotguns
         memory.setfloat(0x8D611C, 0.0, true)
     else
@@ -786,8 +649,7 @@ end
 
 function bonewh(bool)
     lua_thread.create(function()
-        while true do
-            wait(0)
+        while true do wait(0)
             if bool and ini.settings.bone_wh then
                 for i = 0, sampGetMaxPlayerId() do
                     if sampIsPlayerConnected(i) then
@@ -912,11 +774,10 @@ local last = {}
 
 local last = {}
 
-function object_wh(bool)
+function object_wh()
     lua_thread.create(function()
-        while true do
-            wait(0)
-            if bool and ini.settings.object_wh then
+        while true do wait(0)
+            if ini.settings.object_wh then
                 for k, v in pairs(getAllObjects()) do
                     local model_id = getObjectModel(v)
                     for k2, v2 in ipairs(ini.object_wh) do
@@ -981,76 +842,12 @@ function object_wh()
 end
 ]]
 
---------------------------------- doubledamage ---------------------------------
-
-local doubledamage = false
-
-function sampev.onSendGiveDamage(playerId, damage, weapon, bodypart)
-    if doubledamage then
-        if math.random(1, 100) <= 15 then
-            sampSendGiveDamage(playerId, damage, weapon, bodypart)
-            printStringNow(string.format("(X2) Sended %.1f damage to ID %d", damage, playerId), 1000)
-        else
-            printStringNow(string.format("Sended %.1f damage to ID %d", damage, playerId), 1000)
-        end
-    end
-end
+--------------------------------- anti drunk ---------------------------------
 
 function sampev.onSetPlayerDrunk(drunkLevel)
     if ini.settings.antidrunk then
         return false
     end
 end
-
----------------------------------  ---------------------------------
-
--- test
-
-function getHarddiskSerial()
-    local cmd = 'powershell -command "(Get-WmiObject Win32_PhysicalMedia | Select-Object -ExpandProperty SerialNumber)"'
-    local h = io.popen(cmd)
-    local raw = h:read("*a")
-    h:close()
-
-    raw = raw:gsub("%s+", "")
-
-    local serial = {}
-    for part in raw:gmatch("([^%.]+)") do
-        table.insert(serial, part)
-    end
-
-    return serial
-end
-
---[[
-    for k, v in ipairs(getHarddiskSerial()) do
-        print(v)
-    end
-]]
-
-function getProcessorName()
-    local handle = io.popen(
-        'reg.exe QUERY HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0 /v ProcessorNameString')
-    local result = handle:read("*a")
-    local processor_name = result:match('REG_SZ%s+(.+)'):gsub('%s+$', '')
-    handle:close()
-    return processor_name
-end
-
-
-function ShowSystemMessage(text, title, style)
-    ffi.cdef [[
-        int MessageBoxA(
-            void* hWnd,
-            const char* lpText,
-            const char* lpCaption,
-            unsigned int uType
-        );
-    ]]
-    local hwnd = ffi.cast('void*', readMemory(0x00C8CF88, 4, false))
-    ffi.C.MessageBoxA(hwnd, text, title, style and (style + 0x50000) or 0x50000)
-end
-
--- end test
 
 ---------------------------------  ---------------------------------
