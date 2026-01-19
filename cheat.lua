@@ -155,21 +155,18 @@ function registerChatCommands()
         ini.settings.nick_render = not ini.settings.nick_render
         inicfg.save(ini, directIni)
         sampAddChatMessage(ini.settings.nick_render and 'Activated!' or 'DeActivated!', -1)
-        nickrender(ini.settings.nick_render)
     end)
 
     sampRegisterChatCommand(ini.commands.vehicle_render, function()
         ini.settings.vehicle_render = not ini.settings.vehicle_render
         inicfg.save(ini, directIni)
         sampAddChatMessage(ini.settings.vehicle_render and 'Activated!' or 'DeActivated!', -1)
-        vehiclerender(ini.settings.vehicle_render)
     end)
 
     sampRegisterChatCommand(ini.commands.bone_wh, function()
         ini.settings.bone_wh = not ini.settings.bone_wh
         inicfg.save(ini, directIni)
         sampAddChatMessage(ini.settings.bone_wh and 'Activated!' or 'DeActivated!', -1)
-        bonewh(ini.settings.bone_wh)
     end)
 
     sampRegisterChatCommand(ini.commands.static_crosshair, function()
@@ -209,7 +206,6 @@ function registerChatCommands()
         ini.settings.stream_info = not ini.settings.stream_info
         inicfg.save(ini, directIni)
         sampAddChatMessage(ini.settings.stream_info and 'Activated!' or 'DeActivated!', -1)
-        streaminfo(ini.settings.stream_info)
     end)
 
     sampRegisterChatCommand(ini.commands.object_wh, function(id)
@@ -250,27 +246,24 @@ end
 --------------------------------- enable all ---------------------------------
 
 function enableAllFunctions()
-    bonewh(ini.settings.bone_wh)
     staticcrosshair(ini.settings.static_crosshair)
     nospread(ini.settings.no_spread)
     extraws(ini.settings.extra_ws)
-    autoreload(ini.settings.auto_reload)
-    streaminfo(ini.settings.stream_info)
-    nickrender(ini.settings.nick_render)
-    vehiclerender(ini.settings.vehicle_render)
+
+    autoreload()
+    bonewh()
+    streaminfo()
+    nickrender()
+    vehiclerender()
     object_wh()
 end
 
 --------------------------------- disable all ---------------------------------
 
 function disableAllFunctions()
-    bonewh(false)
     staticcrosshair(false)
     nospread(false)
     extraws(false)
-    streaminfo(false)
-    nickrender(false)
-    vehiclerender(false)
     cj_run(false)
 end
 
@@ -341,51 +334,39 @@ function dialogRespond()
             if button == 1 then
                 if list == 0 then
                     ini.settings.bone_wh = not ini.settings.bone_wh
-                    bonewh(ini.settings.bone_wh)
-                    showHelpDialog()
+                    
                 end
                 if list == 1 then
                     ini.settings.static_crosshair = not ini.settings.static_crosshair
                     staticcrosshair(ini.settings.static_crosshair)
-                    showHelpDialog()
                 end
                 if list == 2 then
                     ini.settings.no_spread = not ini.settings.no_spread
                     nospread(ini.settings.no_spread)
-                    showHelpDialog()
                 end
                 if list == 3 then
                     ini.settings.auto_reload = not ini.settings.auto_reload
-                    showHelpDialog()
                 end
                 if list == 4 then
                     ini.settings.extra_ws = not ini.settings.extra_ws
                     extraws(ini.settings.extra_ws)
-                    showHelpDialog()
                 end
                 if list == 5 then
                     ini.settings.anti_mask = not ini.settings.anti_mask
-                    showHelpDialog()
                 end
                 if list == 6 then
                     ini.settings.stream_info = not ini.settings.stream_info
-                    streaminfo(ini.settings.stream_info)
-                    showHelpDialog()
                 end
                 if list == 7 then
                     ini.settings.nick_render = not ini.settings.nick_render
-                    nickrender(ini.settings.nick_render)
-                    showHelpDialog()
                 end
                 if list == 8 then
                     ini.settings.vehicle_render = not ini.settings.vehicle_render
-                    vehiclerender(ini.settings.vehicle_render)
-                    showHelpDialog()
                 end
                 if list == 9 then
                     ini.settings.object_wh = not ini.settings.object_wh
-                    showHelpDialog()
                 end
+                showHelpDialog()
                 inicfg.save(ini, directIni)
             end
         end
@@ -507,10 +488,10 @@ function isNameTagVisible(id)
     return res
 end
 
-function nickrender(bool)
+function nickrender()
     lua_thread.create(function()
         while true do wait(0)
-            if bool and ini.settings.nick_render then
+            if ini.settings.nick_render then
                 for k, v in ipairs(getAllChars()) do
                     local result, id = sampGetPlayerIdByCharHandle(v)
                     if result and v ~= PLAYER_PED then
@@ -537,11 +518,10 @@ end
 
 local my_font = renderCreateFont('Arial Bold', 8.5, 0x4 + 0x8)
 
-function vehiclerender(bool)
-
+function vehiclerender()
     lua_thread.create(function()
         while true do wait(0)
-            if bool and ini.settings.vehicle_render then
+            if ini.settings.vehicle_render then
                 for k, v in ipairs(getAllVehicles()) do
                     local result, id = sampGetVehicleIdByCarHandle(v)
                     if result then
@@ -566,10 +546,10 @@ end
 
 players = {}
 
-function streaminfo(bool)
+function streaminfo()
     lua_thread.create(function()
         while true do wait(0)
-            if bool and ini.settings.stream_info then
+            if ini.settings.stream_info then
                 local y = ini.int_settings.stream_info_y
                 local x = ini.int_settings.stream_info_x
                 for k, v in ipairs(getAllChars()) do
@@ -647,10 +627,10 @@ end
 
 --------------------------------- bonewh ---------------------------------
 
-function bonewh(bool)
+function bonewh()
     lua_thread.create(function()
         while true do wait(0)
-            if bool and ini.settings.bone_wh then
+            if ini.settings.bone_wh then
                 for i = 0, sampGetMaxPlayerId() do
                     if sampIsPlayerConnected(i) then
                         local result, cped = sampGetCharHandleBySampPlayerId(i)
