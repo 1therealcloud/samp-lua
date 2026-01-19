@@ -1,20 +1,36 @@
 script_name('cloud-multi-cheat')
-script_version('19.01.2026')
+script_version('19.01.2026rc1')
 script_author('cloud')
+
+script_properties('work-in-pause')
 
 -- require
 
-require('lib.moonloader')
-local memory = require('memory')
-local ffi = require('ffi')
-local sampev = require('samp.events')
-local weapons = require('game.weapons')
-local inicfg = require('inicfg')
+local function requireLib(name, url)
+    local ok, lib = pcall(require, name)
+    if not ok then
+        print(("Library or module '%s' is missing!"):format(name))
+        if url then
+            print(('Opening download page: %s'):format(url))
+            os.execute('explorer ' .. url .. '')
+            error('Required library or module is missing!')
+        end
+    end
+    return lib
+end
 
+require('lib.moonloader')
 require('samp.synchronization')
+
+local memory = requireLib('memory', 'https://www.blast.hk/attachments/29895/')
+local requests = requireLib('requests', 'https://github.com/Xkelling/blasthack/raw/main/requests.rar')
+local ffi = requireLib('ffi', 'https://www.blast.hk/attachments/19493/')
+
 local sampfuncs = require('sampfuncs')
+local sampev = require('samp.events')
 local raknet = require('samp.raknet')
-local requests = require('requests')
+
+local inicfg = require('inicfg')
 
 -- ini
 local script_name = thisScript().filename:match("^(.*)%.%w+$")
