@@ -130,6 +130,22 @@ function main()
     writeMemory(0x58E1DD, 2, 0x9090, true) -- fast crosshair
     writeMemory(0x058E280, 1, 0xEB, true) -- fix crosshair
 
+    -- speed unlimit
+    memory.setuint8(0x72DDD0, 0x33, true)
+    memory.setuint8(0x72DDD1, 0xC0, true)
+    memory.setuint8(0x72DDD2, 0xC3, true)
+
+    memory.setfloat(0x8D34AC, 0.0, true) -- rail
+
+--[[
+-- OFF
+memory.setuint8(0x72DDD0, 0xA1, true)
+memory.setuint8(0x72DDD1, 0xB8, true)
+memory.setuint8(0x72DDD2, 0x7A, true)
+
+memory.setfloat(0x8D34AC, 0.003, true) -- rail
+]]
+
     -- misc
     noExplosion()
 
@@ -295,28 +311,30 @@ end)
 
 addEventHandler('onWindowMessage', function(msg, wparam, lparam)
     if msg == 0x101 then -- 220
-        if isGameInputFree() then
+        if isSampAvailable() then
+            if isGameInputFree() then
 
-            if wparam == 220 then -- backslash
-                if doesCharExist(playerPed) then
-                    cjrun = not cjrun
-                    cj_run(cjrun)
-                    sampAddChatMessage(cjrun and 'Activated' or 'Deactivated!', -1)
+                if wparam == 220 then -- backslash
+                    if doesCharExist(playerPed) then
+                        cjrun = not cjrun
+                        cj_run(cjrun)
+                        sampAddChatMessage(cjrun and 'Activated' or 'Deactivated!', -1)
+                    end
                 end
-            end
 
-            if wparam == 46 then -- delete
-                if isCharInAnyCar(PLAYER_PED) then
-                    setCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED),
-                    getCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED)))
-                    addOneOffSound(0.0, 0.0, 0.0, 1054)
-                else
-                    local x, y, z = getCharCoordinates(PLAYER_PED)
-                    setCharCoordinates(PLAYER_PED, x, y, z - 1)
-                    addOneOffSound(0.0, 0.0, 0.0, 1055)
+                if wparam == 46 then -- delete
+                    if isCharInAnyCar(PLAYER_PED) then
+                        setCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED),
+                        getCarCoordinates(storeCarCharIsInNoSave(PLAYER_PED)))
+                        addOneOffSound(0.0, 0.0, 0.0, 1054)
+                    else
+                        local x, y, z = getCharCoordinates(PLAYER_PED)
+                        setCharCoordinates(PLAYER_PED, x, y, z - 1)
+                        addOneOffSound(0.0, 0.0, 0.0, 1055)
+                    end
                 end
-            end
-        end -- if if isGameInputFree()
+            end -- if if isGameInputFree()
+        end -- if isSampAvailable()
     end -- msg == 0x101
 end)
 
