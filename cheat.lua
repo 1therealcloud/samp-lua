@@ -1,5 +1,5 @@
 script_name('cloud-multi-cheat')
-script_version('19.01.2026rc1')
+script_version('20.01.2026')
 script_author('cloud')
 
 script_properties('work-in-pause')
@@ -71,6 +71,10 @@ local ini = inicfg.load({
         stream_info_x = 50
     },
 
+    autoupdate = {
+        enabled = true,
+    },
+
     object_wh = {}
 }, directIni)
 inicfg.save(ini, directIni)
@@ -123,8 +127,12 @@ function main()
     -- update
     local lastver = update():getLastVersion()
     print('{73b461}Loaded, version: ' .. lastver)
-    if thisScript().version ~= lastver then
-        update():download()
+    if ini.autoupdate.enable then
+        if thisScript().version ~= lastver then
+            update():download()
+        end
+    else
+        print('{73b461}Autoupdate disabled, version: ' .. lastver)
     end
 
     writeMemory(0x58E1DD, 2, 0x9090, true) -- fast crosshair
